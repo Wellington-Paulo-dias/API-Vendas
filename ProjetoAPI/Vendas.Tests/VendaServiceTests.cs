@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Vendas.API.Mapping;
@@ -17,7 +18,7 @@ public class VendaServiceTests
     private readonly Mock<ILogger<VendaService>> _loggerMock;
     private readonly Mock<IServiceBusPublisher> _serviceBusPublisherMock;
     private readonly VendaService _vendaService;
-    private const string _topico = "sbq-quee-vendas";
+    private  string _topico = "sbq-quee-vendas";
 
 
     public VendaServiceTests()
@@ -33,11 +34,20 @@ public class VendaServiceTests
         });
         _mapper = config.CreateMapper();
 
+        var configuration = new ConfigurationBuilder()
+           .AddInMemoryCollection(new Dictionary<string, string>
+           {
+                { "ServiceBus:TopicoVendas", _topico }
+           })
+           .Build();
+
+
         _vendaService = new VendaService(
             _vendaRepositoryMock.Object,
             _mapper,
             _loggerMock.Object,
-            _serviceBusPublisherMock.Object);
+            _serviceBusPublisherMock.Object,
+            configuration);
     }
 
     [Fact]

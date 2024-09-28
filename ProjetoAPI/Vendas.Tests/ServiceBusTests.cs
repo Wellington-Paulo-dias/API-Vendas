@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Text.Json;
@@ -39,12 +40,19 @@ public class ServiceBusTests : IAsyncLifetime
         var mapper = mapperConfig.CreateMapper();
         var loggerMock = new Mock<ILogger<VendaService>>();
         var serviceBusPublisher = new ServiceBusPublisher(ServiceBusConnectionString);
-
+        // Configurar IConfiguration para os testes
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                { "ServiceBus:TopicoVendas", TopicName }
+            })
+            .Build();
         _vendaService = new VendaService(
             vendaRepositoryMock.Object,
             mapper,
             loggerMock.Object,
-            serviceBusPublisher
+            serviceBusPublisher,
+            configuration
         );
     }
 
