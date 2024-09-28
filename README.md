@@ -138,7 +138,6 @@ POST /api/vendas/
 
 ### 7. Testes do Projeto de Vendas
 
-
 ## Pré-requisitos
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
@@ -185,7 +184,8 @@ Os testes de integração estão localizados nos arquivos `VendaApiIntegrationTe
 Certifique-se de configurar as seguintes variáveis de ambiente para os testes de integração com o Azure Service Bus:
 
 ```bash
-export ServiceBusConnectionString="sua-string-de-conexao-do-service-bus" export TopicName="sbq-quee-vendas"
+export ServiceBusConnectionString="sua-string-de-conexao-do-service-bus"
+export TopicName="sbq-quee-vendas"
 ```
 ### Detalhamento
 1.	export ServiceBusConnectionString="sua-string-de-conexao-do-service-bus":
