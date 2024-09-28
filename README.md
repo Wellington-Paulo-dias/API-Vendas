@@ -34,7 +34,7 @@ VendaAPI é um sistema de gerenciamento de vendas desenvolvido com .NET 8, que u
 Clone o repositório para sua máquina local:
 
 ```bash
-[git clone https://github.com/seu-usuario/API-Vendas.git](https://github.com/Wellington-Paulo-dias/API-Vendas.git)
+git clone https://github.com/Wellington-Paulo-dias/API-Vendas.git
 ````
 
 ### 2. Configuração do Banco de Dados
