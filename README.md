@@ -1,6 +1,6 @@
-# VendaApi
+# VendaAPI
 
-VendaApi é um sistema de gerenciamento de vendas desenvolvido com .NET 8, que utiliza Entity Framework Core para persistência em MySQL e Azure Service Bus para publicação de eventos. Este repositório contém a API de vendas, incluindo lógica de negócios encapsulada nas entidades de domínio, e um sistema robusto de testes automatizados.
+VendaAPI é um sistema de gerenciamento de vendas desenvolvido com .NET 8, que utiliza Entity Framework Core para persistência em MySQL e Azure Service Bus para publicação de eventos. Este repositório contém a API de vendas, incluindo lógica de negócios encapsulada nas entidades de domínio, e um sistema robusto de testes automatizados.
 
 ## Funcionalidades
 
@@ -18,13 +18,14 @@ VendaApi é um sistema de gerenciamento de vendas desenvolvido com .NET 8, que u
 - **AutoMapper**
 - **Serilog**
 - **xUnit e Moq** (para testes automatizados)
-- **DotNet.Testcontainers** (para integração com MySQL em testes)
+- **Testcontainers** (para integração com MySQL em testes)
 
 ## Requisitos
 
-- **.NET 8 SDK**: [Baixe aqui](https://dotnet.microsoft.com/download/dotnet/8.0)
-- **MySQL**: [Baixe aqui](https://dev.mysql.com/downloads/)
-- **Azure Service Bus**: Necessário criar um namespace do Service Bus no [Azure](https://azure.microsoft.com/).
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Docker](https://www.docker.com/get-started) (necessário para testes de integração com MySQL)
+- [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) (necessário para testes de integração com o Service Bus)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) (ou superior) com a carga de trabalho de desenvolvimento .NET instalada
 
 ## Configuração do Projeto
 
@@ -33,8 +34,7 @@ VendaApi é um sistema de gerenciamento de vendas desenvolvido com .NET 8, que u
 Clone o repositório para sua máquina local:
 
 ```bash
-git clone https://github.com/seu-usuario/venda-api.git
-cd venda-api
+git clone https://github.com/seu-usuario/API-Vendas.git
 ````
 
 ### 2. Configuração do Banco de Dados
