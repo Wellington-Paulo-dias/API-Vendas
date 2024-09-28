@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,82 +19,133 @@ namespace Vendas.Data.Services
         private readonly IVendaRepository _vendaRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<VendaService> _logger;
-        private readonly IServiceBusPublisher _serviceBusPublisher;
-        private const string _topico = "sbq-quee-vendas";
+        private readonly IServiceBusPublisher _serviceBusPublisher;      
+        private readonly string _topico;
 
-        public VendaService(IVendaRepository vendaRepository, IMapper mapper, ILogger<VendaService> logger, IServiceBusPublisher serviceBusPublisher)
+        public VendaService(IVendaRepository vendaRepository, 
+            IMapper mapper,
+            ILogger<VendaService> logger, 
+            IServiceBusPublisher serviceBusPublisher,
+            IConfiguration configuration)
         {
             _vendaRepository = vendaRepository;
             _mapper = mapper;
             _logger = logger;
             _serviceBusPublisher = serviceBusPublisher;
+            _topico = configuration["ServiceBus:TopicoVendas"]!;
         }
 
         public async Task<VendaDTO> ObterPorIdAsync(Guid id)
         {
-            var venda = await _vendaRepository.ObterPorIdAsync(id);
-            return _mapper.Map<VendaDTO>(venda);
+            try
+            {
+                var venda = await _vendaRepository.ObterPorIdAsync(id);
+                return _mapper.Map<VendaDTO>(venda);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter venda por ID {Id}", id);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<VendaDTO>> ObterTodasAsync()
         {
-            var vendas = await _vendaRepository.ObterTodasAsync();
-            return _mapper.Map<IEnumerable<VendaDTO>>(vendas);
+            try
+            {
+                var vendas = await _vendaRepository.ObterTodasAsync();
+                return _mapper.Map<IEnumerable<VendaDTO>>(vendas);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter todas as vendas");
+                throw;
+            }
         }
 
         public async Task AdicionarAsync(VendaDTO vendaDTO)
         {
             ArgumentNullException.ThrowIfNull(vendaDTO);
 
-            var venda = _mapper.Map<Venda>(vendaDTO);
-
-            await _vendaRepository.AdicionarAsync(venda);
-
-            _logger.LogInformation("Publicando evento de venda criada");
-            var evento = new CompraCriadaEvent
+            try
             {
-                CompraId = venda.Id,
-                DataCriacao = DateTime.UtcNow,
-                Cliente = venda.Cliente,
-                ValorTotal = venda.ValorTotal,
-                Itens = _mapper.Map<List<ItemVendaDTO>>(venda.Itens)
-            };
+                var venda = _mapper.Map<Venda>(vendaDTO);
 
-            await _serviceBusPublisher.PublicarAsync(evento, _topico);
+                await _vendaRepository.AdicionarAsync(venda);
+
+                _logger.LogInformation("Publicando evento de venda criada");
+                var evento = new CompraCriadaEvent
+                {
+                    CompraId = venda.Id,
+                    DataCriacao = DateTime.UtcNow,
+                    Cliente = venda.Cliente,
+                    ValorTotal = venda.ValorTotal,
+                    Itens = _mapper.Map<List<ItemVendaDTO>>(venda.Itens)
+                };
+
+                await _serviceBusPublisher.PublicarAsync(evento, _topico);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao adicionar venda");
+                throw;
+            }
         }
 
         public async Task AtualizarAsync(VendaDTO vendaDTO)
         {
-            var venda = _mapper.Map<Venda>(vendaDTO);
-            await _vendaRepository.AtualizarAsync(venda);
+            ArgumentNullException.ThrowIfNull(vendaDTO);
 
-            _logger.LogInformation("Publicando evento de venda atualizada");
-            var evento = new CompraAlteradaEvent
+            try
             {
-                CompraId = venda.Id,
-                DataAlteracao = DateTime.UtcNow,
-                Cliente = venda.Cliente,
-                ValorTotal = venda.ValorTotal
-            };
+                var venda = _mapper.Map<Venda>(vendaDTO);
+                await _vendaRepository.AtualizarAsync(venda);
 
-            await _serviceBusPublisher.PublicarAsync(evento, _topico);
+                _logger.LogInformation("Publicando evento de venda atualizada");
+                var evento = new CompraAlteradaEvent
+                {
+                    CompraId = venda.Id,
+                    DataAlteracao = DateTime.UtcNow,
+                    Cliente = venda.Cliente,
+                    ValorTotal = venda.ValorTotal
+                };
+
+                await _serviceBusPublisher.PublicarAsync(evento, _topico);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar venda");
+                throw;
+            }
         }
 
         public async Task RemoverAsync(Guid id)
         {
-            var venda = await _vendaRepository.ObterPorIdAsync(id);
-            if (venda != null)
+            try
             {
-                await _vendaRepository.RemoverAsync(id);
-
-                _logger.LogInformation("Publicando evento de venda removida");
-                var evento = new CompraCanceladaEvent
+                var venda = await _vendaRepository.ObterPorIdAsync(id);
+                if (venda != null)
                 {
-                    CompraId = id,
-                    DataCancelamento = DateTime.UtcNow
-                };
+                    await _vendaRepository.RemoverAsync(id);
 
-                await _serviceBusPublisher.PublicarAsync(evento, _topico);
+                    _logger.LogInformation("Publicando evento de venda removida");
+                    var evento = new CompraCanceladaEvent
+                    {
+                        CompraId = id,
+                        DataCancelamento = DateTime.UtcNow
+                    };
+
+                    await _serviceBusPublisher.PublicarAsync(evento, _topico);
+                }
+                else
+                {
+                    _logger.LogWarning("Venda com ID {Id} não encontrada", id);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao remover venda com ID {Id}", id);
+                throw;
             }
         }
     }

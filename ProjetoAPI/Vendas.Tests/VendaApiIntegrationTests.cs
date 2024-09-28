@@ -12,6 +12,7 @@ using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Vendas.Domain.Interfaces;
 using Vendas.API.Mapping;
+using Microsoft.Extensions.Configuration;
 
 public class VendaApiIntegrationTests : IAsyncLifetime
 {
@@ -76,12 +77,20 @@ public class VendaApiIntegrationTests : IAsyncLifetime
         //var mapperMock = new Mock<IMapper>();
         var loggerMock = new Mock<ILogger<VendaService>>();
         var serviceBusPublisherMock = new Mock<IServiceBusPublisher>();
+        // Configurar IConfiguration para os testes
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                { "ServiceBus:TopicoVendas", "sbq-quee-vendas" }
+            })
+            .Build();
 
         var vendaService = new VendaService(
             new VendaRepository(context),
             mapper,
             loggerMock.Object,
-            serviceBusPublisherMock.Object
+            serviceBusPublisherMock.Object,
+            configuration
         );
 
         var vendaDTO = new VendaDTO
